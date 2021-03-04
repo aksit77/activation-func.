@@ -1,0 +1,52 @@
+import numpy as np
+def tanh(x):
+    return (np.exp(x)-np.exp(-x))/(np.exp(x)+np.exp(-x))
+def tanh_derivative(x):
+    return 1-x**2
+class NeuralNetwork:
+    def __init__(self, x, y):
+        self.input=x
+        self.w1 = np.random.rand(self.input.shape[1],3) # define weights of label
+        self.w2 = np.random.rand(3,2)
+        self.w3 = np.random.rand(2,1)
+        self.y = y 
+        self.output = np.zeros(self.y.shape)
+    def feedforward(self): 
+        self.hidlayer1 = tanh(np.dot(self.input, self.w1)) 
+        self.hidlayer2 = tanh(np.dot(self.hidlayer1, self.w2))
+        self.output = tanh(np.dot(self.hidlayer2, self.w3))
+    def backprop(self):
+        dJ_out=2*(self.y - self.output) 
+        dJ_b=dJ_out*tanh_derivative(self.output)
+        d_w3 = np.dot(self.hidlayer2.T, dJ_b)
+        
+        dJ_hidz2=np.dot(dJ_b,self.w3.T) 
+        dJ_a=dJ_hidz2*tanh_derivative(self.hidlayer2)
+        d_w2 = np.dot(self.hidlayer1.T, dJ_a)
+
+        dJ_hidz1=np.dot(dJ_a,self.w2.T) 
+        dJ_r=dJ_hidz1*tanh_derivative(self.hidlayer1)
+        d_w1 = np.dot(self.input.T, dJ_r)
+
+ 
+        self.w1 += d_w1 
+        self.w2 += d_w2
+        self.w3 += d_w3
+if __name__ == "__main__":
+    X = np.array([[0,0,-1], 
+                  [0,-1,1], 
+                  [-1,0,-1], 
+                  [1,-1,1]]) 
+    y = np.array([[1],[-1],[1],[-1]])
+    nn = NeuralNetwork(X,y)
+
+    for i in range(2000): 
+        nn.feedforward() 
+        nn.backprop()
+   
+    print(nn.output)
+import sklearn.metrics as m 
+threshold=0.3
+binaryOutputs=np.uint8(nn.output>0.3) 
+print(m.accuracy_score(y, binaryOutputs)) 
+print(m.classification_report(y, binaryOutputs))
